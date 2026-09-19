@@ -10,3 +10,4 @@ fastapi
 uvicorn
 pydantic
 asgiref>=3.8.0
+gunicorn
