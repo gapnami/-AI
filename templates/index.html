@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>길잡이 AI</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
+      background: linear-gradient(160deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%);
+      min-height: 100vh;
+      padding: 24px 16px 60px;
+      color: #1a1a2e;
+    }
+    .wrap { max-width: 900px; margin: 0 auto; }
+
+    /* ── Header ── */
+    header { text-align: center; padding: 36px 0 28px; color: #fff; }
+    header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -.5px; margin-bottom: 6px; }
+    header p  { font-size: .9rem; opacity: .7; }
+
+    /* ── Card base ── */
+    .card {
+      background: #fff; border-radius: 22px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.28);
+      margin-bottom: 20px;
+    }
+
+    /* ── Search Card ── */
+    .search-card { padding: 0; overflow: hidden; }
+
+    /* 단계별 레이아웃 */
+    .step-wrap { padding: 24px 30px; }
+    .step-wrap:last-of-type { padding-bottom: 30px; }
+
+    .step-hd {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 16px;
+    }
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff; font-size: .82rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; box-shadow: 0 3px 8px rgba(102,126,234,.35);
+    }
+    .step-title {
+      font-size: 1rem; font-weight: 700; color: #1a1a2e;
+    }
+    .step-sub {
+      font-size: .76rem; color: #9ca3af; margin-left: auto;
+    }
+    .step-divider {
+      height: 1px; background: #f3f4f6; margin: 0 30px;
+    }
+
+    /* 버튼 영역 */
+    .btn-wrap { padding: 6px 30px 30px; }
+
+    .sec-title {
+      font-size: .72rem; font-weight: 700; color: #6b7280;
+      text-transform: uppercase; letter-spacing: .7px; margin-bottom: 9px;
+    }
+
+    /* address inputs */
+    .inp-wrap { position: relative; }
+    .inp-wrap input[type="text"] {
+      width: 100%; padding: 13px 15px 13px 43px;
+      border: 2px solid #e5e7eb; border-radius: 12px;
+      font-size: .97rem; color: #1a1a2e; outline: none;
+      transition: border-color .2s;
+    }
+    .inp-wrap input[type="text"]:focus { border-color: #667eea; }
+    .inp-wrap .ico {
+      position: absolute; left: 13px; top: 50%;
+      transform: translateY(-50%); font-size: 1.05rem; pointer-events: none;
+    }
+    .arrow-div {
+      display: flex; align-items: center; gap: 10px;
+      color: #d1d5db; font-size: .8rem; margin: 10px 0;
+    }
+    .arrow-div::before, .arrow-div::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
+
+    /* autocomplete */
+    .ac-drop {
+      position: absolute; top: calc(100% + 5px); left: 0; right: 0;
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.13); z-index: 200; overflow: hidden; display: none;
+    }
+    .ac-item { padding: 10px 15px; cursor: pointer; transition: background .12s; }
+    .ac-item:hover, .ac-item.active { background: #f5f7ff; }
+    .ac-item .pname { font-weight: 600; font-size: .9rem; }
+    .ac-item .paddr { font-size: .75rem; color: #9ca3af; margin-top: 1px; }
+
+    /* ── 교통수단 토글 ── */
+    .mode-group { display: flex; gap: 8px; }
+    .mode-btn {
+      flex: 1; padding: 10px 8px;
+      border: 2px solid #e5e7eb; border-radius: 11px;
+      background: #fff; cursor: pointer;
+      transition: all .18s; text-align: center;
+      font-size: .82rem; font-weight: 600; color: #6b7280;
+      line-height: 1.5; position: relative;
+    }
+    .mode-btn .m-icon { font-size: 1.3rem; display: block; margin-bottom: 2px; }
+    .mode-btn:hover:not(.mode-dis) { border-color: #667eea; color: #667eea; }
+    .mode-btn.sel   { border-color: #667eea; background: #667eea; color: #fff; }
+    .mode-btn.mode-dis { opacity: .45; cursor: not-allowed; }
+    .mode-badge {
+      position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
+      font-size: .62rem; font-weight: 800; padding: 2px 7px;
+      border-radius: 10px; white-space: nowrap;
+      background: #e5e7eb; color: #6b7280;
+    }
+
+    /* ── 지도 서비스 선택 ── */
+    .svc-group { display: flex; gap: 8px; }
+    .svc-btn {
+      flex: 1; padding: 11px 8px;
+      border: 2px solid #e5e7eb; border-radius: 11px;
+      background: #fff; cursor: pointer;
+      transition: all .18s; text-align: center;
+      font-size: .82rem; font-weight: 600; color: #6b7280;
+      line-height: 1.5; position: relative;
+    }
+    .svc-btn .s-icon { font-size: 1.3rem; display: block; margin-bottom: 2px; }
+    .svc-btn:hover:not(.svc-dis) { border-color: #667eea; color: #667eea; }
+    .svc-btn.svc-sel { border-color: #667eea; background: #f5f7ff; color: #667eea; }
+    .svc-btn.svc-dis { opacity: .42; cursor: not-allowed; }
+    .svc-badge {
+      position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
+      font-size: .62rem; font-weight: 800; padding: 2px 7px;
+      border-radius: 10px; white-space: nowrap;
+      background: #e5e7eb; color: #6b7280;
+    }
+
+    /* ── 선호도 선택 카드 (교통수단과 동일 스타일, 최대 2개) ── */
+    .pref-opts { display: flex; gap: 8px; }
+    .pref-btn {
+      flex: 1; padding: 12px 8px;
+      border: 2px solid #e5e7eb; border-radius: 11px;
+      background: #fff; cursor: pointer;
+      transition: all .18s; text-align: center;
+      font-size: .82rem; font-weight: 600; color: #6b7280;
+      line-height: 1.5; position: relative;
+    }
+    .pref-btn .p-icon { font-size: 1.3rem; display: block; margin-bottom: 2px; }
+    .pref-btn .p-hint { font-size: .68rem; color: #b0b8c4; margin-top: 2px; display: block; font-weight: 400; }
+    .pref-btn:hover   { border-color: #667eea; color: #667eea; }
+
+    /* 선택 상태 색상 */
+    .pref-btn.sel-cheap   { border-color: #10b981; background: #f0fdf4; color: #059669; }
+    .pref-btn.sel-fast    { border-color: #3b82f6; background: #eff6ff; color: #2563eb; }
+    .pref-btn.sel-comfort { border-color: #8b5cf6; background: #f5f3ff; color: #7c3aed; }
+    .pref-btn.sel-safe    { border-color: #f59e0b; background: #fffbeb; color: #d97706; }
+
+    /* 순서 배지 (1순위/2순위) */
+    .pref-btn .rank-badge {
+      position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+      font-size: .65rem; font-weight: 800; padding: 2px 7px;
+      border-radius: 10px; color: #fff; display: none; white-space: nowrap;
+    }
+    .pref-btn.sel-cheap   .rank-badge { background: #10b981; display: inline-block; }
+    .pref-btn.sel-fast    .rank-badge { background: #3b82f6; display: inline-block; }
+    .pref-btn.sel-comfort .rank-badge { background: #8b5cf6; display: inline-block; }
+    .pref-btn.sel-safe    .rank-badge { background: #f59e0b; display: inline-block; }
+
+    /* 가중치 표시줄 */
+    .pref-weight-display {
+      margin-top: 12px; padding: 10px 16px;
+      background: #f8f9ff; border-radius: 10px;
+      font-size: .83rem; text-align: center; color: #9ca3af;
+      display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;
+      min-height: 40px;
+    }
+    .w-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 11px; border-radius: 20px;
+      font-weight: 700; font-size: .8rem; color: #fff;
+    }
+    .w-tag.cheap   { background: #10b981; }
+    .w-tag.fast    { background: #3b82f6; }
+    .w-tag.comfort { background: #8b5cf6; }
+    .w-tag.safe    { background: #f59e0b; }
+    .w-plus { color: #9ca3af; font-weight: 700; font-size: .9rem; }
+
+    /* error */
+    .err-box {
+      background: #fef2f2; border: 1px solid #fecaca;
+      border-radius: 11px; padding: 11px 16px;
+      color: #dc2626; font-size: .88rem;
+      margin-top: 14px; display: none;
+    }
+
+    /* button */
+    .go-btn {
+      width: 100%; margin-top: 18px; padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff; border: none; border-radius: 13px;
+      font-size: 1.05rem; font-weight: 700; cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .go-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(102,126,234,.4); }
+    .go-btn:disabled { opacity: .65; cursor: not-allowed; }
+
+    /* ── Loading ── */
+    .loading { display: none; text-align: center; padding: 44px; color: #fff; }
+    .spinner {
+      width: 46px; height: 46px;
+      border: 4px solid rgba(255,255,255,.25); border-top-color: #fff;
+      border-radius: 50%; animation: spin .75s linear infinite;
+      margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Results ── */
+    #results { display: none; }
+    .route-badge {
+      text-align: center; color: #fff;
+      background: rgba(255,255,255,.13); border-radius: 12px;
+      padding: 10px; font-size: .87rem; margin-bottom: 16px;
+      animation: fadeUp .4s ease;
+    }
+    .opt-tag {
+      display: inline-block; background: rgba(255,255,255,.22);
+      border-radius: 6px; padding: 2px 9px;
+      font-size: .73rem; font-weight: 600; margin-left: 5px;
+    }
+
+    /* ── Notice 배너 ── */
+    .notice-banner {
+      display: flex; align-items: center; gap: 10px;
+      background: #fffbeb; border: 1px solid #fbbf24;
+      border-radius: 10px; padding: 10px 16px;
+      font-size: .85rem; color: #92400e; margin-bottom: 14px;
+    }
+    .notice-banner .n-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+    /* ── Winner ── */
+    .winner-card {
+      border-radius: 22px; padding: 26px 30px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px; animation: fadeUp .4s ease;
+    }
+    .winner-card.kw { background: linear-gradient(135deg,#f6d365,#fda085); box-shadow: 0 10px 40px rgba(253,160,133,.4); }
+    .winner-card.tw { background: linear-gradient(135deg,#89f7fe,#66a6ff); box-shadow: 0 10px 40px rgba(102,166,255,.35); }
+    .w-left { display: flex; align-items: center; gap: 18px; }
+    .trophy { font-size: 2.6rem; }
+    .w-lbl  { font-size: .72rem; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; opacity: .7; }
+    .w-name { font-size: 1.7rem; font-weight: 800; line-height: 1.2; }
+    .w-sub  { font-size: .8rem; opacity: .78; margin-top: 3px; }
+    .w-score-box { text-align: center; border-radius: 12px; padding: 10px 20px; background: rgba(0,0,0,.1); }
+    .w-score-big { font-size: 2rem; font-weight: 800; display: block; }
+    .w-score-sub { font-size: .73rem; opacity: .8; }
+    .kw .w-lbl, .kw .w-name, .kw .w-sub, .kw .w-score-box { color: #7c2d12; }
+    .tw .w-lbl, .tw .w-name, .tw .w-sub, .tw .w-score-box { color: #1e3a5f; }
+
+    /* ── 바로가기 버튼 ── */
+    .goto-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 18px; border-radius: 10px; border: none;
+      font-size: .85rem; font-weight: 700; cursor: pointer;
+      text-decoration: none; transition: transform .15s, box-shadow .15s;
+      white-space: nowrap;
+    }
+    .goto-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+    .goto-btn.kakao { background: #FAE100; color: #3A1D1D; }
+    .goto-btn.tmap  { background: #E8001B; color: #fff; }
+    .goto-btn.transit { background: #52b788; color: #fff; }
+    .pcard-goto-wrap { padding: 0 20px 16px; }
+
+    /* ── Provider Cards ── */
+    .providers { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 16px; }
+    .pcard {
+      background: #fff; border-radius: 20px; overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,.09);
+      animation: fadeUp .4s ease .1s both; position: relative;
+      display: flex; flex-direction: column;
+    }
+    .pcard.is-w { box-shadow: 0 4px 20px rgba(0,0,0,.09), 0 0 0 3px #f6d365; }
+    .win-tag {
+      position: absolute; top: 10px; right: 10px;
+      background: #f6d365; color: #7c2d12;
+      font-size: .66rem; font-weight: 800;
+      padding: 3px 9px; border-radius: 20px;
+    }
+    .car-compare-tag {
+      position: absolute; top: 10px; right: 10px;
+      background: #e5e7eb; color: #374151;
+      font-size: .66rem; font-weight: 700;
+      padding: 3px 9px; border-radius: 20px;
+    }
+    .ph { padding: 18px 20px 13px; color: #fff; }
+    .ph.kakao { background: #3A1D1D; }
+    .ph.tmap  { background: #0A2B6E; }
+    .ph.odsay { background: #1b4332; }
+    .ph.naver { background: #03C75A; }
+    .plogo { font-size: 1.25rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .pbg { font-size: .62rem; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+    .kakao .pbg { background: #FAE100; color: #3A1D1D; }
+    .tmap  .pbg { background: #E8001B; color: #fff; }
+    .odsay .pbg { background: #52b788; color: #fff; }
+
+    /* ── 대중교통 구간 표시 ── */
+    .transit-legs { padding: 4px 0 2px; }
+    .transit-leg {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 7px 0; border-bottom: 1px solid #f3f4f6;
+    }
+    .transit-leg:last-child { border-bottom: none; }
+    .leg-icon { font-size: 1.15rem; flex-shrink: 0; margin-top: 1px; }
+    .leg-body { flex: 1; min-width: 0; }
+    .leg-line { font-weight: 700; font-size: .88rem; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .leg-stations { font-size: .73rem; color: #9ca3af; margin-top: 2px; }
+    .leg-time { font-size: .8rem; color: #6b7280; flex-shrink: 0; font-weight: 600; }
+    .transit-arrow { text-align: center; color: #d1d5db; font-size: .75rem; line-height: 1; padding: 1px 0 1px 14px; }
+
+    /* ── ODsay 우승 카드 ── */
+    .winner-card.ow { background: linear-gradient(135deg,#b7e4c7,#52b788); box-shadow: 0 10px 40px rgba(82,183,136,.35); }
+    .ow .w-lbl, .ow .w-name, .ow .w-sub, .ow .w-score-box { color: #1b4332; }
+
+    /* ── ODsay 점수 바 ── */
+    .score-fill.o { background: linear-gradient(90deg,#52b788,#1b4332); }
+    .dim-bar-fill.odsay-f { background: linear-gradient(90deg,#52b788,#1b4332); }
+    .score-fill.nv { background: linear-gradient(90deg,#03C75A,#028a3e); }
+    .dim-bar-fill.naver-f { background: linear-gradient(90deg,#03C75A,#028a3e); }
+    .winner-card.nw { background: linear-gradient(135deg,#a8edbb,#03C75A); box-shadow: 0 10px 40px rgba(3,199,90,.35); }
+    .nw .w-lbl, .nw .w-name, .nw .w-sub, .nw .w-score-box { color: #014d22; }
+    .pscore-line { margin-top: 4px; font-size: .78rem; opacity: .7; }
+    .pb { padding: 14px 20px; flex: 1; }
+    .metric { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
+    .metric:last-child { border-bottom: none; }
+    .metric.hl { background: #fffbeb; margin: 0 -20px; padding: 8px 20px; border-bottom: none; }
+    .ml { font-size: .82rem; color: #6b7280; }
+    .mv { font-size: .95rem; font-weight: 700; }
+    .mv.b { color: #059669; }
+    .mv.w { color: #dc2626; }
+
+    /* ── 선호도 점수 분석 ── */
+    .breakdown-card { padding: 26px 28px; animation: fadeUp .4s ease .15s both; }
+    .breakdown-card h3 { font-size: .93rem; font-weight: 700; margin-bottom: 18px; }
+    .dim-block { margin-bottom: 20px; }
+    .dim-block:last-child { margin-bottom: 0; }
+    .dim-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .dim-title { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: .88rem; }
+    .dim-meta  { font-size: .73rem; color: #9ca3af; }
+    .dim-wbadge {
+      font-size: .72rem; font-weight: 700; padding: 2px 9px;
+      border-radius: 20px; color: #fff;
+    }
+    .dim-wbadge.cheap   { background: #10b981; }
+    .dim-wbadge.fast    { background: #3b82f6; }
+    .dim-wbadge.comfort { background: #8b5cf6; }
+    .dim-wbadge.safe    { background: #f59e0b; }
+    .dim-bars { display: flex; flex-direction: column; gap: 6px; }
+    .dim-bar-row { display: flex; align-items: center; gap: 8px; }
+    .dim-bar-label { font-size: .75rem; width: 60px; flex-shrink: 0; font-weight: 600; color: #6b7280; }
+    .dim-bar-track { flex: 1; height: 14px; background: #f3f4f6; border-radius: 7px; overflow: hidden; position: relative; }
+    .dim-bar-fill  { height: 100%; border-radius: 7px; width: 0; transition: width 1s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+    .dim-bar-fill span { font-size: .68rem; font-weight: 700; color: rgba(0,0,0,.5); white-space: nowrap; }
+    .dim-bar-fill.kakao-f { background: linear-gradient(90deg,#FAE100,#f59e0b); }
+    .dim-bar-fill.tmap-f  { background: linear-gradient(90deg,#60a5fa,#2563eb); }
+    .dim-bar-raw  { font-size: .73rem; color: #9ca3af; width: 64px; flex-shrink: 0; text-align: right; }
+    .dim-contribution {
+      font-size: .72rem; color: #9ca3af;
+      text-align: right; margin-top: 3px;
+    }
+
+    /* ── 종합 점수 바 ── */
+    .score-card { padding: 24px 28px; animation: fadeUp .4s ease .2s both; }
+    .score-card h3 { font-size: .93rem; font-weight: 700; margin-bottom: 16px; }
+    .score-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .score-name { font-size: .84rem; font-weight: 600; width: 68px; flex-shrink: 0; }
+    .score-track { flex: 1; height: 22px; background: #f3f4f6; border-radius: 11px; overflow: hidden; }
+    .score-fill {
+      height: 100%; border-radius: 11px; width: 0; transition: width 1.1s ease;
+      display: flex; align-items: center; justify-content: flex-end;
+      padding-right: 10px; font-size: .74rem; font-weight: 700; color: rgba(0,0,0,.55);
+    }
+    .score-fill.k { background: linear-gradient(90deg,#FAE100,#f59e0b); }
+    .score-fill.t { background: linear-gradient(90deg,#60a5fa,#2563eb); }
+
+    /* ── 가중치 적용 결과 테이블 ── */
+    .weight-table-card { padding: 24px 28px; animation: fadeUp .4s ease .25s both; }
+    .weight-table-card h3 { font-size: .93rem; font-weight: 700; margin-bottom: 14px; }
+    .wtable { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    .wtable th { text-align: left; color: #6b7280; font-weight: 600; padding: 6px 10px; border-bottom: 2px solid #f3f4f6; }
+    .wtable td { padding: 9px 10px; border-bottom: 1px solid #f9f9f9; vertical-align: middle; }
+    .wtable tr:last-child td { border-bottom: none; }
+    .wtable tr.total-row { background: #f8f9ff; font-weight: 700; }
+    .wt-dim  { display: flex; align-items: center; gap: 7px; }
+    .wt-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .wt-dot.cheap   { background: #10b981; }
+    .wt-dot.fast    { background: #3b82f6; }
+    .wt-dot.comfort { background: #8b5cf6; }
+    .wt-dot.safe    { background: #f59e0b; }
+    .cell-better { color: #059669; font-weight: 700; }
+    .cell-worse  { color: #dc2626; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── 페이즈 전환 ── */
+    #phase-1, #phase-2 { animation: phaseIn .35s ease; }
+    @keyframes phaseIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ── Phase 2 헤더 바 ── */
+    .phase2-bar {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 18px;
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+      color: #fff; padding: 9px 16px; border-radius: 10px;
+      cursor: pointer; font-size: .88rem; font-weight: 600;
+      transition: background .15s; white-space: nowrap; flex-shrink: 0;
+    }
+    .back-btn:hover { background: rgba(255,255,255,.28); }
+    .phase2-route {
+      font-size: .85rem; color: rgba(255,255,255,.82);
+      background: rgba(255,255,255,.1); border-radius: 8px;
+      padding: 7px 14px; flex: 1; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    @media (max-width: 620px) {
+      header h1 { font-size: 1.5rem; }
+      .providers { grid-template-columns: 1fr; }
+      .winner-card { flex-direction: column; gap: 14px; }
+      .pref-grid { grid-template-columns: 1fr; }
+      .mode-group { flex-wrap: wrap; }
+      .mode-btn { min-width: 70px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>🗺️ 길잡이 AI</h1>
+    <p>카카오맵 vs T맵 &nbsp;·&nbsp; 교통수단 · 선호도 가중치 기반 비교</p>
+  </header>
+
+  <!-- ══════════════════════════════════════
+       Phase 1 · 입력
+  ══════════════════════════════════════ -->
+  <div id="phase-1">
+  <div class="card search-card">
+
+    <!-- ① 출발지 · 목적지 -->
+    <div class="step-wrap">
+      <div class="step-hd">
+        <div class="step-num">1</div>
+        <div class="step-title">출발지 · 목적지</div>
+        <div class="step-sub">장소명 또는 주소 입력</div>
+      </div>
+
+      <div class="inp-wrap" style="margin-bottom:4px">
+        <span class="ico">📍</span>
+        <input type="text" id="o-inp" placeholder="출발지를 입력하세요 (예: 서울시청)" autocomplete="off">
+        <input type="hidden" id="o-lat"><input type="hidden" id="o-lon">
+        <div class="ac-drop" id="o-drop"></div>
+      </div>
+
+      <div class="arrow-div">↓</div>
+
+      <div class="inp-wrap">
+        <span class="ico">🏁</span>
+        <input type="text" id="d-inp" placeholder="목적지를 입력하세요 (예: 강남역)" autocomplete="off">
+        <input type="hidden" id="d-lat"><input type="hidden" id="d-lon">
+        <div class="ac-drop" id="d-drop"></div>
+      </div>
+    </div>
+
+    <div class="step-divider"></div>
+
+    <!-- ② 교통수단 -->
+    <div class="step-wrap">
+      <div class="step-hd">
+        <div class="step-num">2</div>
+        <div class="step-title">교통수단 선택</div>
+        <div class="step-sub">이동 방법을 선택하세요</div>
+      </div>
+
+      <div class="mode-group" id="mode-group">
+        <button class="mode-btn" data-val="bus">
+          <span class="m-icon">🚌</span>대중교통
+        </button>
+        <button class="mode-btn" data-val="car">
+          <span class="m-icon">🚗</span>자동차
+        </button>
+        <button class="mode-btn" data-val="walk">
+          <span class="m-icon">🚶</span>걷기
+        </button>
+        <button class="mode-btn mode-dis" data-val="bike" disabled>
+          <div class="mode-badge">준비중</div>
+          <span class="m-icon">🚲</span>자전거
+        </button>
+      </div>
+      <div id="mode-notice" style="margin-top:8px"></div>
+    </div>
+
+    <div class="step-divider"></div>
+
+    <!-- ③ 선호도 -->
+    <div class="step-wrap">
+      <div class="step-hd">
+        <div class="step-num">3</div>
+        <div class="step-title">선호도 선택</div>
+        <div class="step-sub">최대 2개 선택 · 가중치는 자동 계산</div>
+      </div>
+
+      <div class="pref-opts" id="pref-opts">
+        <button class="pref-btn" data-key="cheap" onclick="togglePref('cheap')">
+          <div class="rank-badge" id="rank-cheap"></div>
+          <span class="p-icon">💰</span>
+          저렴함
+          <span class="p-hint">비용 최소화</span>
+        </button>
+        <button class="pref-btn" data-key="fast" onclick="togglePref('fast')">
+          <div class="rank-badge" id="rank-fast"></div>
+          <span class="p-icon">⚡</span>
+          신속함
+          <span class="p-hint">시간 최단</span>
+        </button>
+        <button class="pref-btn" data-key="comfort" onclick="togglePref('comfort')">
+          <div class="rank-badge" id="rank-comfort"></div>
+          <span class="p-icon">😊</span>
+          평안함
+          <span class="p-hint">피로도 최소</span>
+        </button>
+        <button class="pref-btn" data-key="safe" onclick="togglePref('safe')">
+          <div class="rank-badge" id="rank-safe"></div>
+          <span class="p-icon">🛡️</span>
+          안전함
+          <span class="p-hint">안전한 경로</span>
+        </button>
+      </div>
+
+      <div class="pref-weight-display" id="pref-disp">
+        <span>선호도를 1~2개 선택하세요</span>
+      </div>
+    </div>
+
+    <div class="step-divider"></div>
+
+    <!-- ④ 지도 서비스 선택 -->
+    <div class="step-wrap">
+      <div class="step-hd">
+        <div class="step-num">4</div>
+        <div class="step-title">지도 서비스 선택</div>
+        <div class="step-sub">비교할 서비스를 선택하세요 (다중 선택)</div>
+      </div>
+
+      <div class="svc-group" id="svc-group">
+        <button class="svc-btn" data-svc="kakao" onclick="toggleService('kakao')">
+          <span class="s-icon">🗺️</span>카카오맵
+        </button>
+        <button class="svc-btn" data-svc="tmap" onclick="toggleService('tmap')">
+          <span class="s-icon">🚗</span>T맵
+        </button>
+      </div>
+    </div>
+
+    <div class="step-divider"></div>
+
+    <!-- ⑤ 길찾기 버튼 -->
+    <div class="btn-wrap">
+      <div class="step-hd" style="margin-bottom:12px">
+        <div class="step-num">5</div>
+        <div class="step-title">길찾기</div>
+        <div class="step-sub">설정 완료 후 분석을 시작합니다</div>
+      </div>
+      <div class="err-box" id="err-box">⚠️ <span id="err-msg"></span></div>
+      <button class="go-btn" id="go-btn" onclick="doAnalyze()">
+        🔍 &nbsp;길찾기
+      </button>
+    </div>
+
+  </div><!-- /search-card -->
+  </div><!-- /phase-1 -->
+
+  <!-- ══════════════════════════════════════
+       Phase 2 · 결과
+  ══════════════════════════════════════ -->
+  <div id="phase-2" style="display:none">
+
+    <!-- 헤더 바 -->
+    <div class="phase2-bar">
+      <button class="back-btn" onclick="goToPhase1()">← 다시 검색</button>
+      <div class="phase2-route" id="phase2-route"></div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>카카오 · T맵 API 조회 중…</p>
+    </div>
+
+    <!-- Results -->
+    <div id="results">
+
+    <div class="route-badge" id="route-badge"></div>
+
+    <!-- Winner -->
+    <div class="winner-card" id="w-card">
+      <div class="w-left">
+        <div class="trophy">🏆</div>
+        <div>
+          <div class="w-lbl">가중치 기반 추천 서비스</div>
+          <div class="w-name" id="w-name"></div>
+          <div class="w-sub"  id="w-sub"></div>
+        </div>
+      </div>
+      <div class="w-score-box">
+        <span class="w-score-big" id="w-score"></span>
+        <span class="w-score-sub">종합 점수 / 100</span>
+      </div>
+    </div>
+
+    <div id="notice-area"></div>
+
+    <!-- Provider cards -->
+    <div class="providers" id="providers"></div>
+
+    <!-- 선호도 점수 분석 -->
+    <div class="card breakdown-card">
+      <h3>📊 선호도별 점수 분석</h3>
+      <div id="dim-breakdown"></div>
+    </div>
+
+    <!-- 종합 점수 -->
+    <div class="card score-card">
+      <h3>⭐ 가중치 종합 점수</h3>
+      <div id="score-bars"></div>
+    </div>
+
+    <!-- 가중치 적용 결과 테이블 -->
+    <div class="card weight-table-card">
+      <h3>📋 선호도별 가중치 적용 결과표</h3>
+      <table class="wtable" id="w-table"></table>
+    </div>
+
+    </div><!-- /results -->
+  </div><!-- /phase-2 -->
+</div><!-- /wrap -->
+
+<script>
+// ═══════════════════════════════════════════════════
+//  상수
+// ═══════════════════════════════════════════════════
+const PINFO = {
+  kakao: { label:'KakaoMap', icon:'🗺️', hc:'kakao', badge:'카카오', bf:'kakao-f', sc:'k',  wc:'kw' },
+  tmap:  { label:'T Map',    icon:'🚗', hc:'tmap',  badge:'T맵',   bf:'tmap-f',  sc:'t',  wc:'tw' },
+  odsay: { label:'대중교통', icon:'🚆', hc:'odsay', badge:'ODsay', bf:'odsay-f', sc:'o',  wc:'ow' },
+};
+const MODE_LABELS = { bus:'🚌 대중교통', car:'🚗 자동차', walk:'🚶 걷기', bike:'🚲 자전거' };
+const DIMS = [
+  { key:'cheap',   icon:'💰', name:'저렴함',  hint:'기준: 통행료 (낮을수록 우수)' },
+  { key:'fast',    icon:'⚡', name:'신속함',  hint:'기준: 소요시간 (짧을수록 우수)' },
+  { key:'comfort', icon:'😊', name:'평안함',  hint:'대중교통: 교통수단품질+도보+환승 | 자동차: 고속도로 비율 (높을수록 쾌적)' },
+  { key:'safe',    icon:'🛡️', name:'안전함',  hint:'대중교통: 교통수단별 사고통계 기반 | 자동차: 평균속도' },
+];
+
+let selMode = null;
+
+// ═══════════════════════════════════════════════════
+//  지도 바로가기 URL 생성
+// ═══════════════════════════════════════════════════
+const KAKAO_BY     = { car: 'CAR', bus: 'PUBLICTRANSIT', walk: 'WALK' };
+const KAKAO_WEB_MODE = { car: 'car', bus: 'traffic', walk: 'walk', bike: 'bicycle' };
+
+function isMobile() {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+function kakaoWebUrl(mode, oLat, oLon, dLat, dLon, oName, dName, isTransit) {
+  const on = encodeURIComponent(oName);
+  const dn = encodeURIComponent(dName);
+  const webMode = isTransit ? 'traffic' : (KAKAO_WEB_MODE[mode] || 'car');
+  return `https://map.kakao.com/link/by/${webMode}/${on},${oLat},${oLon}/${dn},${dLat},${dLon}`;
+}
+
+function buildMapUrl(service, mode, oLat, oLon, dLat, dLon, oName, dName) {
+  const on = encodeURIComponent(oName);
+  const dn = encodeURIComponent(dName);
+  const isTransit = service === 'odsay';
+  const kakaoBy = isTransit ? 'PUBLICTRANSIT' : (KAKAO_BY[mode] || 'CAR');
+
+  if (service === 'kakao' || service === 'odsay') {
+    if (isMobile()) {
+      // 모바일: 앱 딥링크 (출발지·목적지 좌표 직접 지정)
+      return `kakaomap://route?sp=${oLat},${oLon}&ep=${dLat},${dLon}&by=${kakaoBy}`;
+    }
+    // PC Web: 공식 link/by URL (출발지+목적지+교통수단 동시 지정)
+    return kakaoWebUrl(mode, oLat, oLon, dLat, dLon, oName, dName, isTransit);
+  }
+
+  if (service === 'tmap') {
+    if (isMobile()) {
+      return `tmap://route?startx=${oLon}&starty=${oLat}&goalx=${dLon}&goaly=${dLat}&rStartName=${on}&rGoalName=${dn}`;
+    }
+    return 'tmap_pc_only';  // PC에서 T맵은 경로 URL 미지원
+  }
+
+  return '#';
+}
+
+function showToast(msg) {
+  let t = document.getElementById('goto-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'goto-toast';
+    t.style.cssText = [
+      'position:fixed', 'bottom:28px', 'left:50%', 'transform:translateX(-50%)',
+      'background:#1a1a2e', 'color:#fff', 'padding:12px 22px', 'border-radius:12px',
+      'font-size:.88rem', 'z-index:9999', 'box-shadow:0 6px 24px rgba(0,0,0,.35)',
+      'transition:opacity .3s', 'pointer-events:none', 'text-align:center',
+      'max-width:320px', 'line-height:1.5'
+    ].join(';');
+    document.body.appendChild(t);
+  }
+  t.innerHTML = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 4000);
+}
+
+function openMapService(service, mode, oLat, oLon, dLat, dLon, oName, dName) {
+  // PC에서 T맵: 경로 URL 미지원 → 카카오맵으로 동일 경로 표시
+  if (service === 'tmap' && !isMobile()) {
+    showToast('T맵은 모바일 앱 전용입니다.<br>카카오맵에서 동일 경로를 표시합니다.');
+    window.open(kakaoWebUrl(mode, oLat, oLon, dLat, dLon, oName, dName, false), '_blank');
+    return;
+  }
+
+  const url = buildMapUrl(service, mode, oLat, oLon, dLat, dLon, oName, dName);
+  if (!url || url === '#') return;
+
+  if (isMobile() && (url.startsWith('kakaomap://') || url.startsWith('tmap://'))) {
+    // 앱 딥링크 시도 → 앱 미설치 시 웹 fallback
+    const webUrl = buildKakaoWebUrl(mode, oLat, oLon, dLat, dLon, oName, dName,
+                                     service === 'odsay' ? 'PUBLICTRANSIT' : (KAKAO_BY[mode] || 'CAR'));
+    window.location.href = url;
+    setTimeout(() => { window.open(webUrl, '_blank'); }, 1500);
+  } else {
+    window.open(url, '_blank');
+  }
+}
+
+function buildKakaoWebUrl(mode, oLat, oLon, dLat, dLon, oName, dName, kakaoBy) {
+  return kakaoWebUrl(mode, oLat, oLon, dLat, dLon, oName, dName, kakaoBy === 'PUBLICTRANSIT');
+}
+
+// ═══════════════════════════════════════════════════
+//  선호도 선택 (최대 2개)
+// ═══════════════════════════════════════════════════
+const PREF_INFO = {
+  cheap:   { name:'저렴함', icon:'💰', cls:'sel-cheap'   },
+  fast:    { name:'신속함', icon:'⚡', cls:'sel-fast'    },
+  comfort: { name:'평안함', icon:'😊', cls:'sel-comfort' },
+  safe:    { name:'안전함', icon:'🛡️', cls:'sel-safe'    },
+};
+
+let selectedPrefs = [];
+
+function togglePref(key) {
+  const idx = selectedPrefs.indexOf(key);
+  if (idx >= 0) {
+    selectedPrefs.splice(idx, 1);          // 이미 선택된 항목 → 해제
+  } else {
+    if (selectedPrefs.length >= 2) selectedPrefs.shift(); // 3번째 선택 시 첫 번째 해제
+    selectedPrefs.push(key);
+  }
+  updatePrefUI();
+}
+
+function updatePrefUI() {
+  // 모든 버튼 초기화
+  document.querySelectorAll('.pref-btn').forEach(btn => {
+    const k = btn.dataset.key;
+    btn.className = 'pref-btn';
+    document.getElementById('rank-' + k).textContent = '';
+  });
+
+  // 선택 상태 반영
+  selectedPrefs.forEach((key, i) => {
+    const btn = document.querySelector(`.pref-btn[data-key="${key}"]`);
+    btn.classList.add(PREF_INFO[key].cls);
+    const badge = document.getElementById('rank-' + key);
+    badge.textContent = selectedPrefs.length === 2
+      ? (i === 0 ? '1순위' : '2순위') : '선택됨';
+  });
+
+  // 가중치 표시줄
+  const disp = document.getElementById('pref-disp');
+  if (selectedPrefs.length === 0) {
+    disp.innerHTML = '<span>선호도를 1~2개 선택하세요</span>';
+    return;
+  }
+  const n = selectedPrefs.length;
+  const base = Math.floor(100 / n);
+  const tags = selectedPrefs.map((key, i) => {
+    const w = i === 0 ? 100 - base * (n - 1) : base;
+    const pi = PREF_INFO[key];
+    return `<span class="w-tag ${key}">${pi.icon} ${pi.name} <b>${w}%</b></span>`;
+  });
+  const plusSep = n > 1 ? '<span class="w-plus">+</span>' : '';
+  const hint = n < 2
+    ? '<span style="color:#c4c4c4;font-size:.73rem">+ 하나 더 선택 가능</span>'
+    : '';
+  disp.innerHTML = tags.join(plusSep) + hint;
+}
+
+// ═══════════════════════════════════════════════════
+//  지도 서비스 선택 (다중 선택, 최소 1개)
+// ═══════════════════════════════════════════════════
+let selectedServices = [];
+
+function toggleService(key) {
+  const idx = selectedServices.indexOf(key);
+  if (idx >= 0) {
+    selectedServices.splice(idx, 1);
+  } else {
+    selectedServices.push(key);
+  }
+  updateServiceUI();
+}
+
+function updateServiceUI() {
+  document.querySelectorAll('.svc-btn:not(.svc-dis)').forEach(btn => {
+    btn.classList.toggle('svc-sel', selectedServices.includes(btn.dataset.svc));
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  교통수단 토글
+// ═══════════════════════════════════════════════════
+document.getElementById('mode-group').querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('mode-group').querySelectorAll('.mode-btn').forEach(b => b.classList.remove('sel'));
+    btn.classList.add('sel');
+    selMode = btn.dataset.val;
+  });
+});
+
+// ═══════════════════════════════════════════════════
+//  Autocomplete
+// ═══════════════════════════════════════════════════
+function setupAC(inpId, dropId, latId, lonId) {
+  const inp  = document.getElementById(inpId);
+  const drop = document.getElementById(dropId);
+  const lat  = document.getElementById(latId);
+  const lon  = document.getElementById(lonId);
+  let timer, items=[], idx=-1;
+
+  inp.addEventListener('input', () => {
+    lat.value=''; lon.value='';
+    clearTimeout(timer);
+    const q = inp.value.trim();
+    if (q.length < 2) { drop.style.display='none'; return; }
+    timer = setTimeout(() => load(q), 300);
+  });
+  inp.addEventListener('keydown', e => {
+    if (!items.length) return;
+    if (e.key==='ArrowDown') { e.preventDefault(); move(idx+1); }
+    if (e.key==='ArrowUp')   { e.preventDefault(); move(idx-1); }
+    if (e.key==='Enter' && idx>=0) { e.preventDefault(); pick(idx); }
+    if (e.key==='Escape') drop.style.display='none';
+  });
+  document.addEventListener('click', e => {
+    if (!inp.contains(e.target) && !drop.contains(e.target)) drop.style.display='none';
+  });
+
+  async function load(q) {
+    try {
+      const r = await fetch('/api/search?q='+encodeURIComponent(q));
+      items = await r.json(); render();
+    } catch { drop.style.display='none'; }
+  }
+  function render() {
+    if (!items.length) { drop.style.display='none'; return; }
+    drop.innerHTML = items.map((p,i)=>
+      `<div class="ac-item" data-i="${i}">
+         <div class="pname">${p.name}</div>
+         <div class="paddr">${p.address}</div>
+       </div>`).join('');
+    drop.querySelectorAll('.ac-item').forEach(el =>
+      el.addEventListener('mousedown', e => { e.preventDefault(); pick(+el.dataset.i); }));
+    idx=-1; drop.style.display='block';
+  }
+  function move(i) {
+    const els=drop.querySelectorAll('.ac-item');
+    idx=(i+els.length)%els.length;
+    els.forEach((el,j)=>el.classList.toggle('active',j===idx));
+  }
+  function pick(i) {
+    const p=items[i];
+    inp.value=p.name; lat.value=p.lat; lon.value=p.lon;
+    drop.style.display='none'; items=[]; idx=-1;
+  }
+}
+setupAC('o-inp','o-drop','o-lat','o-lon');
+setupAC('d-inp','d-drop','d-lat','d-lon');
+['o-inp','d-inp'].forEach(id =>
+  document.getElementById(id).addEventListener('keydown', e => { if(e.key==='Enter') doAnalyze(); }));
+
+// ═══════════════════════════════════════════════════
+//  분석 실행
+// ═══════════════════════════════════════════════════
+async function doAnalyze() {
+  const oQ  = document.getElementById('o-inp').value.trim();
+  const dQ  = document.getElementById('d-inp').value.trim();
+  const oLa = document.getElementById('o-lat').value;
+  const oLo = document.getElementById('o-lon').value;
+  const dLa = document.getElementById('d-lat').value;
+  const dLo = document.getElementById('d-lon').value;
+
+  if (!oQ || !dQ)              { showErr('출발지와 목적지를 모두 입력해주세요.'); return; }
+  if (!selMode)                { showErr('이동 수단을 선택해야합니다.'); return; }
+  if (!selectedPrefs.length)   { showErr('선호도를 1개 이상 선택해주세요.'); return; }
+  if (!selectedServices.length){ showErr('지도 서비스를 1개 이상 선택해주세요.'); return; }
+  hideErr();
+  // Phase 2로 전환 후 로딩 시작
+  document.getElementById('phase2-route').textContent = `📍 ${oQ}  →  🏁 ${dQ}`;
+  showPhase(2);
+  setLoading(true);
+
+  // ── 서버 연결 사전 확인 ──────────────────────────────
+  try {
+    const ping = await fetch('/api/ping');
+    if (!ping.ok) throw new Error('ping 실패');
+  } catch(e) {
+    goToPhase1();
+    showErr('서버에 연결할 수 없습니다. 터미널에서 python server.py 가 실행 중인지 확인하세요.');
+    return;
+  }
+
+  // ── API 호출 ─────────────────────────────────────────
+  let apiData = null;
+  try {
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        origin: oQ, destination: dQ,
+        origin_lat: oLa || null, origin_lon: oLo || null,
+        dest_lat:   dLa || null, dest_lon:   dLo || null,
+        vehicle_type:      selMode,
+        selected_prefs:    selectedPrefs,
+        selected_services: selectedServices,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      // 자전거/도보 API 미지원 오류는 notice-area에 배너로 표시
+      if (res.status === 503 && selMode === 'bike') {
+        setLoading(false);
+        document.getElementById('results').style.display = 'block';
+        const bikeErrMsg = (data.error || '자전거 경로는 선택한 지도 서비스에서 지원되지 않습니다. 자동차 또는 대중교통을 이용해 주세요.').replace(/\n/g, ' ');
+        document.getElementById('notice-area').innerHTML =
+          `<div class="notice-banner"><span class="n-icon">⚠️</span><span>${bikeErrMsg}</span></div>`;
+        document.getElementById('w-card').style.display = 'none';
+        document.getElementById('providers').innerHTML = '';
+        document.getElementById('dim-breakdown').innerHTML = '';
+        return;
+      }
+      showErr('⚠️ ' + (data.error || '분석 실패')); setLoading(false); return;
+    }
+    apiData = data;
+  } catch(e) {
+    showErr('API 호출 오류: ' + e.message);
+    setLoading(false);
+    return;
+  }
+
+  setLoading(false);
+
+  // ── 결과 렌더링 (try 블록 밖 — JS 오류가 연결 오류로 오해되지 않도록) ──
+  try {
+    renderResults(apiData);
+  } catch(e) {
+    showErr('결과 표시 오류: ' + e.message);
+    console.error('[renderResults 오류]', e);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  결과 렌더링
+// ═══════════════════════════════════════════════════
+function renderResults(data) {
+  const { origin, destination, origin_lat, origin_lon, dest_lat, dest_lon,
+          recommendation, pref_scores,
+          pref_breakdown, dim_meta, weights, selected_prefs: selPrefs,
+          details, vehicle_type, notices } = data;
+  const oLat = origin_lat, oLon = origin_lon, dLat = dest_lat, dLon = dest_lon;
+
+  // 이전 자전거 오류 상태 복원
+  document.getElementById('w-card').style.display = '';
+
+  // ── 안내 배너 ──────────────────────────────────────────────
+  const noticeArea = document.getElementById('notice-area');
+  if (noticeArea) {
+    noticeArea.innerHTML = (notices || []).map(msg =>
+      `<div class="notice-banner"><span class="n-icon">⚠️</span><span>${msg}</span></div>`
+    ).join('');
+  }
+  const keys   = Object.keys(details);
+  const winner = recommendation;
+  const wi     = PINFO[winner] || { label:winner, wc:'kw' };
+  const wd     = details[winner] || {};
+  const others = keys.filter(k => k !== winner);
+  const other  = others[0];           // 비교 대상 (첫 번째 비교군)
+  const od     = details[other] || {};
+
+  // route badge
+  const isTransitMode = vehicle_type === 'bus';
+  const prefStr = (selPrefs||[]).map(k => {
+    const pi = PREF_INFO[k] || {};
+    return `${pi.icon||''}${pi.name||k}`;
+  }).join(' + ') || '선호도 미선택';
+  const modeTag = isTransitMode
+    ? '🚆 대중교통 vs 🚗 자동차 비교'
+    : (MODE_LABELS[vehicle_type]||vehicle_type);
+  document.getElementById('route-badge').innerHTML =
+    `📍 <b>${origin}</b> → 🏁 <b>${destination}</b>` +
+    `<span class="opt-tag">${modeTag}</span>` +
+    `<span class="opt-tag">${prefStr}</span>`;
+
+  // winner card
+  const card = document.getElementById('w-card');
+  card.className = `winner-card ${wi.wc}`;
+  document.getElementById('w-name').textContent  = wi.label;
+  document.getElementById('w-score').textContent = (pref_scores[winner]||0).toFixed(1);
+
+  // winner sub-text: 선택한 선호도 각각의 우위를 구체적 수치로 설명
+  const prefNames = { cheap:'저렴함', fast:'신속함', comfort:'평안함', safe:'안전함' };
+  const loserLabel = other ? (PINFO[other] || { label: other }).label : null;
+  let winReason = '';
+
+  // 비교 대상 없는 단독 결과면 메시지 생략
+  if (wd && od && other && selPrefs && selPrefs.length > 0 && pref_breakdown) {
+    const cMeta = (dim_meta || {}).comfort || {};
+
+    // 각 차원에서 winner 기준 짧은 수치 설명
+    function dimDesc(dim) {
+      if (dim === 'fast') {
+        const diff = Math.round(od.duration_min - wd.duration_min);
+        if (diff >= 1)  return `${fmtTime(diff)} 빠름`;
+        if (diff <= -1) return `${fmtTime(-diff)} 느림`;
+        return '소요시간 비슷';
+      }
+      if (dim === 'cheap') {
+        const diff = (od.toll_fee||0) - (wd.toll_fee||0);
+        if (diff > 100)  return `통행료 ${diff.toLocaleString()}원 절약`;
+        if (diff < -100) return `통행료 ${(-diff).toLocaleString()}원 불리`;
+        return '통행료 비슷';
+      }
+      if (dim === 'comfort') {
+        const wR = parseFloat(cMeta[winner]||''), oR = parseFloat(cMeta[other]||'');
+        if (!isNaN(wR) && !isNaN(oR)) {
+          const d = +(wR - oR).toFixed(1);
+          if (d >  0.5) return `고속도로 ${d}% 높음`;
+          if (d < -0.5) return `고속도로 ${(-d).toFixed(1)}% 낮음`;
+          return '고속도로 비율 비슷';
+        }
+        return '';
+      }
+      if (dim === 'safe') {
+        const wS = wd.distance_km * 60 / Math.max(wd.duration_min, 0.1);
+        const oS = od.distance_km * 60 / Math.max(od.duration_min, 0.1);
+        const d = +(oS - wS).toFixed(1);
+        if (d >  0.5) return `속도 ${d}km/h 낮음`;
+        if (d < -0.5) return `속도 ${(-d).toFixed(1)}km/h 높음`;
+        return '속도 비슷';
+      }
+      return '';
+    }
+
+    function isWinning(dim) {
+      return ((pref_breakdown[winner]||{})[dim]||0) > ((pref_breakdown[other]||{})[dim]||0);
+    }
+
+    if (selPrefs.length === 1) {
+      const dim = selPrefs[0];
+      const desc = dimDesc(dim);
+      if (desc && isWinning(dim))
+        winReason = `선택하신 '${prefNames[dim]}' 기준에서 ${loserLabel}보다 ${desc}합니다`;
+      else if (desc)
+        winReason = `종합 점수에서 ${loserLabel}보다 앞섭니다`;
+
+    } else if (selPrefs.length === 2) {
+      const [d1, d2] = selPrefs;
+      const win1 = isWinning(d1), win2 = isWinning(d2);
+      const desc1 = dimDesc(d1) || prefNames[d1];
+      const desc2 = dimDesc(d2) || prefNames[d2];
+
+      if (win1 && win2) {
+        winReason = `'${prefNames[d1]}'(${desc1}) · '${prefNames[d2]}'(${desc2}) 모두 ${loserLabel}보다 앞섭니다`;
+      } else if (win1 && !win2) {
+        winReason = `'${prefNames[d1]}'(${desc1})에서 앞서고, '${prefNames[d2]}'는 ${loserLabel}가 우세합니다`;
+      } else if (!win1 && win2) {
+        winReason = `'${prefNames[d2]}'(${desc2})에서 앞서고, '${prefNames[d1]}'는 ${loserLabel}가 우세합니다`;
+      } else {
+        winReason = `종합 점수에서 ${loserLabel}보다 앞섭니다`;
+      }
+    }
+  }
+  if (!winReason) {
+    if (isTransitMode && winner === 'odsay')
+      winReason = `자동차(${loserLabel}) 대비 선택하신 선호도 기준에서 대중교통이 유리합니다`;
+    else if (isTransitMode && winner !== 'odsay')
+      winReason = `대중교통(ODsay) 대비 선택하신 선호도 기준에서 자동차가 유리합니다`;
+    else if (others.length >= 2)
+      winReason = `${others.map(k=>(PINFO[k]||{label:k}).label).join(' · ')} 대비 가중치 종합 점수에서 앞섭니다`;
+    else
+      winReason = other
+        ? `${loserLabel} 대비 가중치 종합 점수에서 앞섭니다`
+        : `단독으로 선택된 서비스입니다`;
+  }
+
+  document.getElementById('w-sub').textContent = winReason;
+
+  // provider cards
+  const pEl = document.getElementById('providers');
+  pEl.innerHTML = '';
+  // 전체 최솟값 (N개 서비스 비교 기준)
+  const minDist = Math.min(...keys.map(k => details[k].distance_km));
+  const minTime = Math.min(...keys.map(k => details[k].duration_min));
+  const minToll = Math.min(...keys.map(k => details[k].toll_fee));
+
+  keys.forEach(p => {
+    const d   = details[p];
+    const pi  = PINFO[p] || {label:p, hc:'', badge:p};
+    const isW = p === winner;
+    const bD  = d.distance_km  === minDist;
+    const bT  = d.duration_min === minTime;
+    const bC  = d.toll_fee     === minToll;
+    const legs = d.transit_legs || [];
+    const isTransit = legs.length > 0;
+
+    const transitHtml = isTransit ? `
+      <div class="transit-legs">${buildLegHtml(legs)}</div>
+      <div class="metric" style="margin-top:6px"><span class="ml">⏱️ 총 소요시간</span>
+        <span class="mv b">${fmtTime(d.duration_min)}</span></div>
+      <div class="metric"><span class="ml">🎫 교통 요금</span>
+        <span class="mv b">${d.toll_fee.toLocaleString()} 원</span></div>
+      <div class="metric"><span class="ml">🚶 도보 포함</span>
+        <span class="mv">${d.distance_km} km</span></div>
+    ` : `
+      <div class="metric"><span class="ml">🛣️ 거리</span>
+        <span class="mv ${bD?'b':'w'}">${d.distance_km} km</span></div>
+      <div class="metric"><span class="ml">⏱️ 소요시간</span>
+        <span class="mv ${bT?'b':'w'}">${fmtTime(d.duration_min)}</span></div>
+      <div class="metric"><span class="ml">💰 통행료</span>
+        <span class="mv ${bC?'b':'w'}">${d.toll_fee.toLocaleString()} 원</span></div>
+      ${d.taxi_fee ? `<div class="metric"><span class="ml">🚕 택시비 예상</span>
+        <span class="mv">${d.taxi_fee.toLocaleString()} 원</span></div>` : ''}
+    `;
+
+    const carBadge = (isTransitMode && !isTransit)
+      ? '<div class="car-compare-tag">🚗 자동차 비교</div>' : '';
+
+    // provider별 바로가기 버튼
+    let pcardGotoHtml = '';
+    if (oLat && oLon && dLat && dLon) {
+      const pBtnClass = p === 'tmap' ? 'tmap' : (p === 'odsay' ? 'transit' : 'kakao');
+      const pBtnLabel = '바로가기';
+      const safeO = origin.replace(/'/g, "\\'");
+      const safeD = destination.replace(/'/g, "\\'");
+      pcardGotoHtml = `<div class="pcard-goto-wrap">
+        <button class="goto-btn ${pBtnClass}" style="width:100%;justify-content:center"
+          onclick="openMapService('${p}','${vehicle_type}',${oLat},${oLon},${dLat},${dLon},'${safeO}','${safeD}')">
+          ${pBtnLabel}
+        </button></div>`;
+    }
+
+    pEl.innerHTML += `
+      <div class="pcard ${isW?'is-w':''}">
+        ${isW?'<div class="win-tag">✓ 추천</div>':''}
+        ${carBadge}
+        <div class="ph ${pi.hc}">
+          <div class="plogo">${pi.icon} ${pi.label} <span class="pbg">${pi.badge}</span></div>
+          <div class="pscore-line">가중치 점수 ${(pref_scores[p]||0).toFixed(1)}</div>
+        </div>
+        <div class="pb">${transitHtml}</div>
+        ${pcardGotoHtml}
+      </div>`;
+  });
+
+  // 선호도 점수 분석
+  const dbEl = document.getElementById('dim-breakdown');
+  dbEl.innerHTML = '';
+  const totalWSum = Object.values(weights).reduce((a,b)=>a+b,0)||1;
+  DIMS.forEach(dim => {
+    const wPct = Math.round((weights[dim.key]||0) / totalWSum * 100);
+    const meta = (dim_meta || {})[dim.key] || {};
+
+    const rows = keys.map(p => {
+      const sc  = (pref_breakdown[p]||{})[dim.key] ?? 50;
+      const pi  = PINFO[p] || { bf:'kakao-f', label:p };
+      const raw = meta[p] || '-';
+      const isW = sc > ((pref_breakdown[keys.find(k=>k!==p)]||{})[dim.key]??50);
+      return `
+        <div class="dim-bar-row">
+          <div class="dim-bar-label">${pi.label}</div>
+          <div class="dim-bar-track">
+            <div class="dim-bar-fill ${pi.bf}" data-w="${sc}">
+              <span>${sc.toFixed(0)}점</span>
+            </div>
+          </div>
+          <div class="dim-bar-raw">${raw}${isW?' ✓':''}</div>
+        </div>`;
+    }).join('');
+
+    const contrib = keys.map(p => {
+      const sc = (pref_breakdown[p]||{})[dim.key] ?? 50;
+      const w  = (weights[dim.key]||0) / totalWSum;
+      return `${(PINFO[p]||{label:p}).label}: ${(sc*w).toFixed(1)}점`;
+    }).join(' / ');
+
+    dbEl.innerHTML += `
+      <div class="dim-block">
+        <div class="dim-header">
+          <div class="dim-title">
+            <span>${dim.icon}</span>
+            <span>${dim.name}</span>
+            <span class="dim-wbadge ${dim.key}">가중치 ${wPct}%</span>
+          </div>
+          <div class="dim-meta">${dim.hint}</div>
+        </div>
+        <div class="dim-bars">${rows}</div>
+        <div class="dim-contribution">가중 기여: ${contrib}</div>
+      </div>`;
+  });
+
+  // 종합 점수 바
+  const sEl = document.getElementById('score-bars');
+  sEl.innerHTML = '';
+  const maxS = Math.max(...keys.map(p=>pref_scores[p]||0), 100);
+  keys.forEach(p => {
+    const pi  = PINFO[p] || { sc:'k', label:p };
+    const pct = Math.round((pref_scores[p]||0)/maxS*100);
+    sEl.innerHTML += `
+      <div class="score-row">
+        <div class="score-name">${pi.label}</div>
+        <div class="score-track">
+          <div class="score-fill ${pi.sc}" data-w="${pct}">
+            ${(pref_scores[p]||0).toFixed(1)}점
+          </div>
+        </div>
+      </div>`;
+  });
+
+  // 가중치 적용 결과 테이블
+  const tEl = document.getElementById('w-table');
+  const totalWS = Object.values(weights).reduce((a,b)=>a+b,0)||1;
+  tEl.innerHTML = `
+    <tr>
+      <th>선호도</th><th>가중치</th>
+      ${keys.map(p=>`<th>${(PINFO[p]||{label:p}).icon||''} ${(PINFO[p]||{label:p}).label}</th>`).join('')}
+    </tr>`;
+  DIMS.forEach(dim => {
+    const wPct = Math.round((weights[dim.key]||0)/totalWS*100);
+    const scores = keys.map(p => (pref_breakdown[p]||{})[dim.key]??50);
+    const maxSc  = Math.max(...scores);
+    const cells  = keys.map((p,i) => {
+      const sc = scores[i];
+      const cls = sc===maxSc ? 'cell-better' : 'cell-worse';
+      const w   = (weights[dim.key]||0)/totalWS;
+      return `<td class="${cls}">${sc.toFixed(1)}점 <span style="color:#9ca3af;font-size:.75rem">(${(sc*w).toFixed(1)})</span></td>`;
+    }).join('');
+    tEl.innerHTML += `<tr><td><div class="wt-dim"><div class="wt-dot ${dim.key}"></div>${dim.icon} ${dim.name}</div></td><td><b>${wPct}%</b></td>${cells}</tr>`;
+  });
+  // 합계 행
+  const totals = keys.map(p => (pref_scores[p]||0));
+  const maxTot = Math.max(...totals);
+  const totCells = keys.map((p,i)=>{
+    const cls = totals[i]===maxTot ? 'cell-better' : 'cell-worse';
+    return `<td class="${cls}"><b>${totals[i].toFixed(1)}점</b></td>`;
+  }).join('');
+  tEl.innerHTML += `<tr class="total-row"><td><div class="wt-dim">📊 종합</div></td><td>100%</td>${totCells}</tr>`;
+
+  // 표시 & 애니메이션
+  document.getElementById('results').style.display = 'block';
+  setTimeout(() => {
+    document.querySelectorAll('[data-w]').forEach(el => { el.style.width = el.dataset.w + '%'; });
+  }, 80);
+}
+
+// ═══════════════════════════════════════════════════
+//  대중교통 구간 HTML 생성
+// ═══════════════════════════════════════════════════
+function buildLegHtml(legs) {
+  return legs.map((leg, i) => {
+    const arrow = i < legs.length - 1
+      ? '<div class="transit-arrow">↓</div>' : '';
+    if (leg.type === 'walk') {
+      return `<div class="transit-leg">
+        <span class="leg-icon">${leg.icon}</span>
+        <div class="leg-body">
+          <div class="leg-line">도보</div>
+          ${leg.distance_km > 0 ? `<div class="leg-stations">${leg.distance_km}km</div>` : ''}
+        </div>
+        <div class="leg-time">${fmtTime(leg.duration_min)}</div>
+      </div>${arrow}`;
+    }
+    const stations = leg.start_station && leg.end_station
+      ? `${leg.start_station} → ${leg.end_station}${leg.station_count > 0 ? ` (${leg.station_count}정거장)` : ''}`
+      : '';
+    return `<div class="transit-leg">
+      <span class="leg-icon">${leg.icon}</span>
+      <div class="leg-body">
+        <div class="leg-line">${leg.line_name || leg.type_label}</div>
+        ${stations ? `<div class="leg-stations">${stations}</div>` : ''}
+      </div>
+      <div class="leg-time">${leg.duration_min}분</div>
+    </div>${arrow}`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════
+//  유틸리티
+// ═══════════════════════════════════════════════════
+function fmtTime(min) {
+  const m = Math.round(min);
+  if (m < 60) return `${m}분`;
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return r === 0 ? `${h}시간` : `${h}시간 ${r}분`;
+}
+
+// ── 페이즈 전환 ─────────────────────────────────────
+function showPhase(n) {
+  const p1 = document.getElementById('phase-1');
+  const p2 = document.getElementById('phase-2');
+  if (n === 1) {
+    p2.style.display = 'none';
+    p1.style.display = 'block';
+    p1.style.animation = 'none';
+    requestAnimationFrame(() => { p1.style.animation = ''; });
+  } else {
+    p1.style.display = 'none';
+    p2.style.display = 'block';
+    p2.style.animation = 'none';
+    requestAnimationFrame(() => { p2.style.animation = ''; });
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goToPhase1() {
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('loading').style.display  = 'none';
+  showPhase(1);
+}
+
+function setLoading(on) {
+  document.getElementById('loading').style.display = on ? 'block' : 'none';
+  if (on) document.getElementById('results').style.display = 'none';
+  document.getElementById('go-btn').disabled = on;
+}
+function showErr(msg) {
+  document.getElementById('err-msg').textContent = msg;
+  document.getElementById('err-box').style.display = 'block';
+}
+function hideErr() { document.getElementById('err-box').style.display = 'none'; }
+</script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.venv-1/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and runtime files
+*.log
+server.log
+logs/
+output/logs/
+
+# Generated artifacts
+output/reports/
+output/visualizations/
+*.json
+*.csv
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+
+# Secrets and environment files
+.env
+.env.*
+!.env.example
+*.env
+secrets.json
+config/*.local.py
+config/*.secret.py
+apikeys/
+credentials/
+*.pem
+*.key
+
+# Generic
+*.bak
+*.tmp
+
+# Keep sample files tracked if needed
+!README.md
