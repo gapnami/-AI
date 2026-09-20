@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
   <title>길잡이 AI</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -14,7 +16,7 @@
       padding: 24px 16px 60px;
       color: #1a1a2e;
     }
-    .wrap { max-width: 900px; margin: 0 auto; }
+    .wrap { max-width: 1100px; margin: 0 auto; }
 
     /* ── Header ── */
     header { text-align: center; padding: 36px 0 28px; color: #fff; }
@@ -23,8 +25,10 @@
 
     /* ── Card base ── */
     .card {
-      background: #fff; border-radius: 22px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.28);
+      background: #fff;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 22px;
+      box-shadow: 0 18px 48px rgba(15, 23, 42, 0.16);
       margin-bottom: 20px;
     }
 
@@ -40,9 +44,9 @@
       margin-bottom: 16px;
     }
     .step-num {
-      width: 28px; height: 28px; border-radius: 50%;
+      width: 22px; height: 22px; border-radius: 50%;
       background: linear-gradient(135deg, #667eea, #764ba2);
-      color: #fff; font-size: .82rem; font-weight: 800;
+      color: #fff; font-size: .68rem; font-weight: 800;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0; box-shadow: 0 3px 8px rgba(102,126,234,.35);
     }
@@ -95,9 +99,11 @@
     .ac-item .paddr { font-size: .75rem; color: #9ca3af; margin-top: 1px; }
 
     /* ── 교통수단 토글 ── */
-    .mode-group { display: flex; gap: 8px; }
+    .mode-group {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
     .mode-btn {
-      flex: 1; padding: 10px 8px;
+      flex: 1 1 140px; min-width: 120px; padding: 10px 8px;
       border: 2px solid #e5e7eb; border-radius: 11px;
       background: #fff; cursor: pointer;
       transition: all .18s; text-align: center;
@@ -116,9 +122,11 @@
     }
 
     /* ── 지도 서비스 선택 ── */
-    .svc-group { display: flex; gap: 8px; }
+    .svc-group {
+      display: flex; gap: 8px; flex-wrap: nowrap;
+    }
     .svc-btn {
-      flex: 1; padding: 11px 8px;
+      flex: 1 1 0; min-width: 0; padding: 11px 8px;
       border: 2px solid #e5e7eb; border-radius: 11px;
       background: #fff; cursor: pointer;
       transition: all .18s; text-align: center;
@@ -137,9 +145,11 @@
     }
 
     /* ── 선호도 선택 카드 (교통수단과 동일 스타일, 최대 2개) ── */
-    .pref-opts { display: flex; gap: 8px; }
+    .pref-opts {
+      display: flex; gap: 8px; flex-wrap: nowrap;
+    }
     .pref-btn {
-      flex: 1; padding: 12px 8px;
+      flex: 1 1 0; min-width: 0; padding: 12px 8px;
       border: 2px solid #e5e7eb; border-radius: 11px;
       background: #fff; cursor: pointer;
       transition: all .18s; text-align: center;
@@ -458,12 +468,12 @@
   <div id="phase-1">
   <div class="card search-card">
 
-    <!-- ① 출발지 · 목적지 -->
+    <!-- ① 이동 경로 -->
     <div class="step-wrap">
       <div class="step-hd">
         <div class="step-num">1</div>
-        <div class="step-title">출발지 · 목적지</div>
-        <div class="step-sub">장소명 또는 주소 입력</div>
+        <div class="step-title">이동 경로</div>
+        <div class="step-sub">출발지와 목적지를 입력하세요</div>
       </div>
 
       <div class="inp-wrap" style="margin-bottom:4px">
