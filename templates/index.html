@@ -100,15 +100,19 @@
 
     /* ── 교통수단 토글 ── */
     .mode-group {
-      display: flex; flex-wrap: wrap; gap: 8px;
+      display: flex; flex-wrap: nowrap; gap: 8px;
+      overflow-x: auto; overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
     }
     .mode-btn {
-      flex: 1 1 140px; min-width: 120px; padding: 10px 8px;
+      flex: 1 1 0; min-width: 0; padding: 10px 8px;
       border: 2px solid #e5e7eb; border-radius: 11px;
       background: #fff; cursor: pointer;
       transition: all .18s; text-align: center;
       font-size: .82rem; font-weight: 600; color: #6b7280;
       line-height: 1.5; position: relative;
+      white-space: nowrap;
     }
     .mode-btn .m-icon { font-size: 1.3rem; display: block; margin-bottom: 2px; }
     .mode-btn:hover:not(.mode-dis) { border-color: #667eea; color: #667eea; }
