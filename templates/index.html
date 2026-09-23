@@ -731,6 +731,13 @@ function buildMapUrl(service, mode, oLat, oLon, dLat, dLon, oName, dName) {
   return '#';
 }
 
+function getMobileFallbackUrl(service, mode, oLat, oLon, dLat, dLon, oName, dName) {
+  if (service === 'tmap') {
+    return kakaoWebUrl(mode, oLat, oLon, dLat, dLon, oName, dName, false);
+  }
+  return kakaoWebUrl(mode, oLat, oLon, dLat, dLon, oName, dName, service === 'odsay');
+}
+
 function showToast(msg) {
   let t = document.getElementById('goto-toast');
   if (!t) {
@@ -763,14 +770,19 @@ function openMapService(service, mode, oLat, oLon, dLat, dLon, oName, dName) {
   if (!url || url === '#') return;
 
   if (isMobile() && (url.startsWith('kakaomap://') || url.startsWith('tmap://'))) {
-    // 앱 딥링크 시도 → 앱 미설치 시 웹 fallback
-    const webUrl = buildKakaoWebUrl(mode, oLat, oLon, dLat, dLon, oName, dName,
-                                     service === 'odsay' ? 'PUBLICTRANSIT' : (KAKAO_BY[mode] || 'CAR'));
+    const fallbackUrl = getMobileFallbackUrl(service, mode, oLat, oLon, dLat, dLon, oName, dName);
+
+    // 1) 앱 딥링크 시도
     window.location.href = url;
-    setTimeout(() => { window.open(webUrl, '_blank'); }, 1500);
-  } else {
-    window.open(url, '_blank');
+
+    // 2) 앱이 열리지 않으면 1.2초 뒤 웹 URL로 보완 fallback
+    setTimeout(() => {
+      window.open(fallbackUrl, '_blank');
+    }, 1200);
+    return;
   }
+
+  window.open(url, '_blank');
 }
 
 function buildKakaoWebUrl(mode, oLat, oLon, dLat, dLon, oName, dName, kakaoBy) {
