@@ -11,7 +11,7 @@
 
     body {
       font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
-      background: linear-gradient(160deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%);
+      background: linear-gradient(180deg, #f5f7fb 0%, #eef2f7 100%);
       min-height: 100vh;
       padding: 24px 16px 60px;
       color: #1a1a2e;
@@ -19,9 +19,9 @@
     .wrap { max-width: 1100px; margin: 0 auto; }
 
     /* ── Header ── */
-    header { text-align: center; padding: 36px 0 28px; color: #fff; }
-    header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -.5px; margin-bottom: 6px; }
-    header p  { font-size: .9rem; opacity: .7; }
+    header { text-align: center; padding: 16px 0 18px; color: #111827; }
+    header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -.5px; margin-bottom: 6px; line-height: 1.1; color: #111827; }
+    header p  { font-size: .9rem; opacity: .72; line-height: 1.5; color: #5b6475; }
 
     /* ── Card base ── */
     .card {
@@ -45,10 +45,10 @@
     }
     .step-num {
       width: 22px; height: 22px; border-radius: 50%;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
       color: #fff; font-size: .68rem; font-weight: 800;
       display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; box-shadow: 0 3px 8px rgba(102,126,234,.35);
+      flex-shrink: 0; box-shadow: 0 3px 8px rgba(59,130,246,.25);
     }
     .step-title {
       font-size: 1rem; font-weight: 700; color: #1a1a2e;
@@ -71,12 +71,18 @@
     /* address inputs */
     .inp-wrap { position: relative; }
     .inp-wrap input[type="text"] {
-      width: 100%; padding: 13px 15px 13px 43px;
+      width: 100%; padding: 12px 12px 12px 43px;
       border: 2px solid #e5e7eb; border-radius: 12px;
-      font-size: .97rem; color: #1a1a2e; outline: none;
+      font-size: .88rem; color: #1a1a2e; outline: none;
       transition: border-color .2s;
+      line-height: 1.35;
     }
     .inp-wrap input[type="text"]:focus { border-color: #667eea; }
+    .inp-wrap input[type="text"]::placeholder {
+      color: #9ca3af;
+      opacity: 1;
+      font-size: .82rem;
+    }
     .inp-wrap .ico {
       position: absolute; left: 13px; top: 50%;
       transform: translateY(-50%); font-size: 1.05rem; pointer-events: none;
@@ -211,12 +217,12 @@
     /* button */
     .go-btn {
       width: 100%; margin-top: 18px; padding: 15px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
       color: #fff; border: none; border-radius: 13px;
       font-size: 1.05rem; font-weight: 700; cursor: pointer;
       transition: transform .15s, box-shadow .15s;
     }
-    .go-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(102,126,234,.4); }
+    .go-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,.25); }
     .go-btn:disabled { opacity: .65; cursor: not-allowed; }
 
     /* ── Loading ── */
@@ -232,14 +238,14 @@
     /* ── Results ── */
     #results { display: none; }
     .route-badge {
-      text-align: center; color: #fff;
-      background: rgba(255,255,255,.13); border-radius: 12px;
+      text-align: center; color: #1f2937;
+      background: #f3f6fb; border: 1px solid #e5e7eb; border-radius: 12px;
       padding: 10px; font-size: .87rem; margin-bottom: 16px;
       animation: fadeUp .4s ease;
     }
     .opt-tag {
-      display: inline-block; background: rgba(255,255,255,.22);
-      border-radius: 6px; padding: 2px 9px;
+      display: inline-block; background: #e8eefc;
+      color: #1d4ed8; border-radius: 6px; padding: 2px 9px;
       font-size: .73rem; font-weight: 600; margin-left: 5px;
     }
 
@@ -358,14 +364,31 @@
     .dim-block { margin-bottom: 20px; }
     .dim-block:last-child { margin-bottom: 0; }
     .dim-header {
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
       margin-bottom: 8px;
     }
-    .dim-title { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: .88rem; }
-    .dim-meta  { font-size: .73rem; color: #9ca3af; }
+    .dim-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-weight: 700;
+      font-size: .88rem;
+      white-space: nowrap;
+      flex-wrap: nowrap;
+    }
+    .dim-meta  {
+      display: block;
+      font-size: .73rem;
+      color: #9ca3af;
+      line-height: 1.4;
+    }
     .dim-wbadge {
       font-size: .72rem; font-weight: 700; padding: 2px 9px;
       border-radius: 20px; color: #fff;
+      white-space: nowrap;
     }
     .dim-wbadge.cheap   { background: #10b981; }
     .dim-wbadge.fast    { background: #3b82f6; }
@@ -406,7 +429,10 @@
     .wtable th { text-align: left; color: #6b7280; font-weight: 600; padding: 6px 10px; border-bottom: 2px solid #f3f4f6; }
     .wtable td { padding: 9px 10px; border-bottom: 1px solid #f9f9f9; vertical-align: middle; }
     .wtable tr:last-child td { border-bottom: none; }
-    .wtable tr.total-row { background: #f8f9ff; font-weight: 700; }
+    .wtable tr.total-row {
+      background: #ffffff;
+      font-weight: 700;
+    }
     .wt-dim  { display: flex; align-items: center; gap: 7px; }
     .wt-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .wt-dot.cheap   { background: #10b981; }
@@ -432,18 +458,22 @@
     .phase2-bar {
       display: flex; align-items: center; gap: 12px;
       margin-bottom: 18px;
+      padding: 8px 10px;
+      background: rgba(255,255,255,.7);
+      border: 1px solid rgba(148,163,184,.18);
+      border-radius: 14px;
     }
     .back-btn {
       display: flex; align-items: center; gap: 6px;
-      background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
-      color: #fff; padding: 9px 16px; border-radius: 10px;
+      background: #ffffff; border: 1px solid #e5e7eb;
+      color: #1f2937; padding: 9px 16px; border-radius: 10px;
       cursor: pointer; font-size: .88rem; font-weight: 600;
       transition: background .15s; white-space: nowrap; flex-shrink: 0;
     }
-    .back-btn:hover { background: rgba(255,255,255,.28); }
+    .back-btn:hover { background: #f8fafc; }
     .phase2-route {
-      font-size: .85rem; color: rgba(255,255,255,.82);
-      background: rgba(255,255,255,.1); border-radius: 8px;
+      font-size: .85rem; color: #475569;
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
       padding: 7px 14px; flex: 1; min-width: 0;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
@@ -500,6 +530,42 @@
       .phase2-route {
         white-space: normal;
       }
+      .dim-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      .dim-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        flex-wrap: nowrap;
+        width: auto;
+        max-width: 100%;
+        font-size: .8rem;
+      }
+      .dim-wbadge {
+        font-size: .67rem;
+        padding: 2px 7px;
+      }
+      .dim-meta {
+        display: block;
+        width: 100%;
+        margin-top: 0;
+        line-height: 1.4;
+      }
+      .dim-bar-row {
+        display: grid;
+        grid-template-columns: 54px minmax(0, 1fr) 58px;
+        gap: 6px;
+        align-items: center;
+      }
+      .dim-bar-label,
+      .dim-bar-raw {
+        white-space: nowrap;
+      }
       .score-row {
         display: grid;
         grid-template-columns: 62px minmax(0, 1fr);
@@ -528,7 +594,7 @@
 
   <header>
     <h1>🗺️ 길잡이 AI</h1>
-    <p>카카오맵 vs T맵 &nbsp;·&nbsp; 교통수단 · 선호도 가중치 기반 비교</p>
+    <p>길잡이AI와 함께하는 스마트 경로 탐색</p>
   </header>
 
   <!-- ══════════════════════════════════════
@@ -1347,9 +1413,7 @@ function renderResults(data) {
       <div class="score-row">
         <div class="score-name">${pi.label}</div>
         <div class="score-track">
-          <div class="score-fill ${pi.sc}" data-w="${pct}">
-            ${(pref_scores[p]||0).toFixed(1)}점
-          </div>
+          <div class="score-fill ${pi.sc}" data-w="${pct}"></div>
         </div>
       </div>`;
   });
