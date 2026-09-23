@@ -395,17 +395,17 @@
     .dim-wbadge.comfort { background: #8b5cf6; }
     .dim-wbadge.safe    { background: #f59e0b; }
     .dim-bars { display: flex; flex-direction: column; gap: 6px; }
-    .dim-bar-row { display: flex; align-items: center; gap: 8px; }
-    .dim-bar-label { font-size: .75rem; width: 60px; flex-shrink: 0; font-weight: 600; color: #6b7280; }
-    .dim-bar-track { flex: 1; height: 14px; background: #f3f4f6; border-radius: 7px; overflow: hidden; position: relative; }
+    .dim-bar-row { display: flex; align-items: center; gap: 6px; }
+    .dim-bar-label { font-size: .72rem; width: 52px; flex-shrink: 0; font-weight: 600; color: #6b7280; }
+    .dim-bar-track { flex: 1; height: 13px; background: #f3f4f6; border-radius: 7px; overflow: hidden; position: relative; max-width: 140px; }
     .dim-bar-fill  { height: 100%; border-radius: 7px; width: 0; transition: width 1s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
     .dim-bar-fill span { font-size: .68rem; font-weight: 700; color: rgba(0,0,0,.5); white-space: nowrap; }
     .dim-bar-fill.kakao-f { background: linear-gradient(90deg,#FAE100,#f59e0b); }
     .dim-bar-fill.tmap-f  { background: linear-gradient(90deg,#60a5fa,#2563eb); }
-    .dim-bar-raw  { font-size: .73rem; color: #9ca3af; width: 64px; flex-shrink: 0; text-align: right; }
+    .dim-bar-raw  { font-size: .71rem; color: #9ca3af; width: 56px; flex-shrink: 0; text-align: right; }
     .dim-contribution {
-      font-size: .72rem; color: #9ca3af;
-      text-align: right; margin-top: 3px;
+      font-size: .71rem; color: #9ca3af;
+      text-align: right; margin-top: 4px;
     }
 
     /* ── 종합 점수 바 ── */
@@ -417,7 +417,10 @@
     .score-fill {
       height: 100%; border-radius: 11px; width: 0; transition: width 1.1s ease;
       display: flex; align-items: center; justify-content: flex-end;
-      padding-right: 10px; font-size: .74rem; font-weight: 700; color: rgba(0,0,0,.55);
+      padding-right: 10px; box-sizing: border-box;
+    }
+    .score-fill span {
+      font-size: .74rem; font-weight: 700; color: rgba(0,0,0,.55); white-space: nowrap;
     }
     .score-fill.k { background: linear-gradient(90deg,#FAE100,#f59e0b); }
     .score-fill.t { background: linear-gradient(90deg,#60a5fa,#2563eb); }
@@ -456,27 +459,43 @@
 
     /* ── Phase 2 헤더 바 ── */
     .phase2-bar {
-      display: flex; align-items: center; gap: 12px;
+      display: flex; align-items: stretch; gap: 12px;
       margin-bottom: 18px;
-      padding: 8px 10px;
-      background: rgba(255,255,255,.7);
-      border: 1px solid rgba(148,163,184,.18);
-      border-radius: 14px;
     }
-    .back-btn {
-      display: flex; align-items: center; gap: 6px;
-      background: #ffffff; border: 1px solid #e5e7eb;
-      color: #1f2937; padding: 9px 16px; border-radius: 10px;
-      cursor: pointer; font-size: .88rem; font-weight: 600;
-      transition: background .15s; white-space: nowrap; flex-shrink: 0;
-    }
-    .back-btn:hover { background: #f8fafc; }
     .phase2-route {
-      font-size: .85rem; color: #475569;
-      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
-      padding: 7px 14px; flex: 1; min-width: 0;
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column; justify-content: center;
+      background: #e9edf3; border: 1px solid #dde4ef;
+      color: #111827; border-radius: 12px;
+      padding: 10px 14px; min-height: 58px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+    }
+    .phase2-route-main {
+      font-size: 1rem; font-weight: 800; line-height: 1.3;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+    .phase2-route-meta {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+      margin-top: 6px;
+      min-height: 20px;
+    }
+    .phase2-tag {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,.7); border: 1px solid rgba(148,163,184,.35);
+      color: #374151; border-radius: 8px; padding: 4px 8px;
+      font-size: .68rem; font-weight: 700; line-height: 1.2;
+      white-space: nowrap;
+    }
+    .back-btn {
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      border: none; color: #fff; padding: 0 18px; border-radius: 12px;
+      cursor: pointer; font-size: .88rem; font-weight: 700;
+      transition: filter .15s; white-space: nowrap; flex-shrink: 0;
+      min-width: 104px; min-height: 58px;
+      box-shadow: 0 8px 18px rgba(37,99,235,.18);
+    }
+    .back-btn:hover { filter: brightness(1.02); }
 
     @media (max-width: 620px) {
       header h1 { font-size: 1.5rem; }
@@ -743,8 +762,8 @@
 
     <!-- 헤더 바 -->
     <div class="phase2-bar">
-      <button class="back-btn" onclick="goToPhase1()">← 다시 검색</button>
       <div class="phase2-route" id="phase2-route"></div>
+      <button class="back-btn" onclick="goToPhase1()">다시 검색</button>
     </div>
 
     <!-- Loading -->
@@ -806,8 +825,8 @@
 //  상수
 // ═══════════════════════════════════════════════════
 const PINFO = {
-  kakao: { label:'KakaoMap', icon:'🗺️', hc:'kakao', badge:'카카오', bf:'kakao-f', sc:'k',  wc:'kw' },
-  tmap:  { label:'T Map',    icon:'🚗', hc:'tmap',  badge:'T맵',   bf:'tmap-f',  sc:'t',  wc:'tw' },
+  kakao: { label:'kakao', icon:'🗺️', hc:'kakao', badge:'카카오', bf:'kakao-f', sc:'k',  wc:'kw' },
+  tmap:  { label:'T map',  icon:'🚗', hc:'tmap',  badge:'T맵',   bf:'tmap-f',  sc:'t',  wc:'tw' },
   odsay: { label:'대중교통', icon:'🚆', hc:'odsay', badge:'ODsay', bf:'odsay-f', sc:'o',  wc:'ow' },
 };
 const MODE_LABELS = { bus:'🚌 대중교통', car:'🚗 자동차', walk:'🚶 걷기', bike:'🚲 자전거' };
@@ -1090,7 +1109,13 @@ async function doAnalyze() {
   if (!selectedServices.length){ showErr('지도 서비스를 1개 이상 선택해주세요.'); return; }
   hideErr();
   // Phase 2로 전환 후 로딩 시작
-  document.getElementById('phase2-route').textContent = `📍 ${oQ}  →  🏁 ${dQ}`;
+  document.getElementById('phase2-route').innerHTML = `
+    <div class="phase2-route-main">${oQ} → ${dQ}</div>
+    <div class="phase2-route-meta">
+      <span class="phase2-tag">${MODE_LABELS[selMode] || selMode}</span>
+      <span class="phase2-tag">${(selectedPrefs || []).map(key => (PREF_INFO[key] || {}).name || key).join(' / ') || '선호도'}</span>
+    </div>
+  `;
   showPhase(2);
   setLoading(true);
 
@@ -1190,10 +1215,7 @@ function renderResults(data) {
   const modeTag = isTransitMode
     ? '🚆 대중교통 vs 🚗 자동차 비교'
     : (MODE_LABELS[vehicle_type]||vehicle_type);
-  document.getElementById('route-badge').innerHTML =
-    `📍 <b>${origin}</b> → 🏁 <b>${destination}</b>` +
-    `<span class="opt-tag">${modeTag}</span>` +
-    `<span class="opt-tag">${prefStr}</span>`;
+  document.getElementById('route-badge').innerHTML = '';
 
   // winner card
   const card = document.getElementById('w-card');
@@ -1413,7 +1435,9 @@ function renderResults(data) {
       <div class="score-row">
         <div class="score-name">${pi.label}</div>
         <div class="score-track">
-          <div class="score-fill ${pi.sc}" data-w="${pct}"></div>
+          <div class="score-fill ${pi.sc}" data-w="${pct}">
+            <span>${(pref_scores[p]||0).toFixed(0)}점</span>
+          </div>
         </div>
       </div>`;
   });
