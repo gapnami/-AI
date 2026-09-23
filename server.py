@@ -8,6 +8,8 @@ import logging
 import os
 import sys
 
+import requests
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 logging.disable(logging.CRITICAL)
 
@@ -16,6 +18,21 @@ from flask import Flask, jsonify, make_response, render_template, request
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True   # 템플릿 파일 변경 시 자동 반영
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # 브라우저 정적 파일 캐시 비활성화
+
+
+@app.route('/debug-ip')
+def debug_ip():
+    """Render 공개 IP 확인용 임시 엔드포인트.
+
+    Shell이 없는 환경에서도 서버의 공인 IP를 확인할 수 있게 한다.
+    배포 후 브라우저에서 /debug-ip 를 호출하면 IP가 출력된다.
+    """
+    try:
+        ip = requests.get('https://api.ipify.org', timeout=10).text.strip()
+        return ip, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+    except Exception as exc:
+        return jsonify({'error': f'IP lookup failed: {exc}'}), 500
+
 
 from config.api_config import config
 from core.kakao_api_handler import KakaoAPIHandler
