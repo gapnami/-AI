@@ -451,10 +451,75 @@
     @media (max-width: 620px) {
       header h1 { font-size: 1.5rem; }
       .providers { grid-template-columns: 1fr; }
-      .winner-card { flex-direction: column; gap: 14px; }
-      .pref-grid { grid-template-columns: 1fr; }
-      .mode-group { flex-wrap: wrap; }
-      .mode-btn { min-width: 70px; }
+      .winner-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+      }
+      .w-left { align-items: flex-start; }
+      .step-hd {
+        flex-wrap: wrap;
+        gap: 8px 10px;
+      }
+      .step-sub {
+        width: 100%;
+        margin-left: 0;
+      }
+      .mode-group,
+      .svc-group,
+      .pref-opts {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .mode-btn,
+      .svc-btn,
+      .pref-btn {
+        min-width: 0;
+        width: 100%;
+        min-height: 76px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.28;
+        white-space: normal;
+        padding: 10px 8px;
+      }
+      .mode-btn .m-icon,
+      .svc-btn .s-icon,
+      .pref-btn .p-icon { margin-bottom: 4px; }
+      .pref-btn .p-hint {
+        display: block;
+        font-size: .62rem;
+        margin-top: 2px;
+      }
+      .phase2-bar {
+        flex-wrap: wrap;
+      }
+      .phase2-route {
+        white-space: normal;
+      }
+      .score-row {
+        display: grid;
+        grid-template-columns: 62px minmax(0, 1fr);
+        gap: 8px;
+        align-items: center;
+      }
+      .score-name {
+        width: auto;
+        font-size: .72rem;
+        white-space: nowrap;
+      }
+      .wtable {
+        font-size: .72rem;
+      }
+      .wtable th,
+      .wtable td {
+        white-space: nowrap;
+        padding-left: 6px;
+        padding-right: 6px;
+      }
     }
   </style>
 </head>
